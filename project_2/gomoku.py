@@ -8,6 +8,7 @@ This is a placeholder that you should remove once you modify the function.
 
 Author(s): Michael Guerzhoy with tests contributed by Siavash Kazemian.  Last modified: Oct. 30, 2021
 """
+import copy
 
 def is_empty(board):
     pass
@@ -17,14 +18,98 @@ def is_bounded(board, y_end, x_end, length, d_y, d_x):
     pass
     
 def detect_row(board, col, y_start, x_start, length, d_y, d_x):
+    open_seq_count = 0
+    semi_open_seq_count = 0
+    row_start_open = False
+    counting = False
+    count = 0
+    while True:
+        if board[y_start][x_start] == " ":
+            if counting:
+                if count == length:
+                    if row_start_open:
+                        open_seq_count += 1
+                    else:
+                        semi_open_seq_count += 1
+                counting = False
+            row_start_open = True
+        elif board[y_start][x_start] == col:
+            if counting:
+                count += 1
+            else:
+                counting = True
+                count = 1
+        else:
+            if counting:
+                if count == length:
+                    if row_start_open:
+                        semi_open_seq_count += 1
+                counting = False
+            row_start_open = False
+
+        y_start += d_y
+        x_start += d_x
+        if y_start > len(board) -1 or x_start > len(board[0]) -1:
+            if counting and count == length:
+                if row_start_open:
+                    semi_open_seq_count += 1
+            break
+
     return open_seq_count, semi_open_seq_count
     
 def detect_rows(board, col, length):
-    ####CHANGE ME
     open_seq_count, semi_open_seq_count = 0, 0
+
+    # left edge
+    for i in range(len(board)):
+        open_seq, semi_open_seq = detect_row(board, col, i, 0, length, 0, 1)    
+        open_seq_count += open_seq
+        semi_open_seq_count += semi_open_seq
+
+        # diagonal going downwards left to right
+        if i < len(board) -1:
+            open_seq, semi_open_seq = detect_row(board, col, i, 0, length, 1, 1) 
+            open_seq_count += open_seq
+            semi_open_seq_count += semi_open_seq
+    
+    # top edge
+    for i in range(len(board[0])):
+        open_seq, semi_open_seq = detect_row(board, col, 0, i, length, 1, 0)    
+        open_seq_count += open_seq
+        semi_open_seq_count += semi_open_seq
+
+        # diagonal going downwards left to right and those going right to left
+        if i < len(board) -1 and i > 0:
+            # downwards left to right
+            open_seq, semi_open_seq = detect_row(board, col, 0, i, length, 1, 1) 
+            open_seq_count += open_seq
+            semi_open_seq_count += semi_open_seq
+            # downwards right to left
+            open_seq, semi_open_seq = detect_row(board, col, 0, i, length, 1, -1) 
+            open_seq_count += open_seq
+            semi_open_seq_count += semi_open_seq
+    
+    # right edge only with diagonal from right to left
+    for i in range(len(board) -1):
+        open_seq, semi_open_seq = detect_row(board, col, i, 0, length, 1, -1) 
+        open_seq_count += open_seq
+        semi_open_seq_count += semi_open_seq
+
     return open_seq_count, semi_open_seq_count
     
 def search_max(board):
+    max_score = 0
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j] == " ":
+                copy_board = copy.deepcopy(board)
+                copy_board[i][j] = "b"
+                cur_score = score(copy_board)
+                if cur_score > max_score:
+                    max_score =  cur_score
+                    move_y = i
+                    move_x = j
+
     return move_y, move_x
     
 def score(board):
@@ -287,9 +372,9 @@ def some_tests():
     #     
     
     y = 5; x = 3; d_x = -1; d_y = 1; length = 1
-    put_seq_on_board(board, y, x, d_y, d_x, length, "b");
-    print_board(board);
-    analysis(board);
+    put_seq_on_board(board, y, x, d_y, d_x, length, "b")
+    print_board(board)
+    analysis(board)
     
     #        Expected output:
     #           *0|1|2|3|4|5|6|7*
@@ -327,5 +412,7 @@ def some_tests():
   
             
 if __name__ == '__main__':
-    play_gomoku(8)
+    test_search_max()
+
+    #play_gomoku(8)
     
