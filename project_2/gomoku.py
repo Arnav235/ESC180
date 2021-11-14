@@ -140,9 +140,29 @@ def score(board):
             10   * semi_open_b[3]                +  
             open_b[2] + semi_open_b[2] - open_w[2] - semi_open_w[2])
 
-    
+# the function checks if the board is full    
+def check_if_board_full(board):
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j] == " ":
+                return False
+    return True
+
 def is_win(board):
-    pass
+    # checking for draw
+    if check_if_board_full(board): return "Draw"
+
+    # checking if white won
+    open_seq, semi_open_seq = detect_rows(board, "w", 5)
+    if open_seq > 0 or semi_open_seq > 0:
+        return "White won"
+    
+    # checking if black won
+    open_seq, semi_open_seq = detect_rows(board, "b", 5)
+    if open_seq > 0 or semi_open_seq > 0:
+        return "Black won"
+    
+    return "Continue playing"
 
 
 def print_board(board):
@@ -412,7 +432,5 @@ def some_tests():
   
             
 if __name__ == '__main__':
-    test_search_max()
-
-    #play_gomoku(8)
+    play_gomoku(8)
     
