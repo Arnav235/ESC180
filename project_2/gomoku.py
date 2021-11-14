@@ -148,20 +148,42 @@ def check_if_board_full(board):
                 return False
     return True
 
+# function checks whether at the position (y, x) and going in the direction (d_y, d_x)
+# the color 'col' makes a 5 in a row
+def check_5_row(board, col, y, x, d_y, d_x):
+    for i in range(4):
+        y += d_y
+        x += d_x
+        if y > len(board)-1 or x > len(board[0]) -1: return False
+        if board[y][x] != col: return False
+    if ( y + d_y < len(board) and x + d_x < len(board[0]) ) and board[y + d_y][x + d_x] == col: return False
+    return True
+
 def is_win(board):
     # checking for draw
     if check_if_board_full(board): return "Draw"
 
-    # checking if white won
-    open_seq, semi_open_seq = detect_rows(board, "w", 5)
-    if open_seq > 0 or semi_open_seq > 0:
-        return "White won"
-    
-    # checking if black won
-    open_seq, semi_open_seq = detect_rows(board, "b", 5)
-    if open_seq > 0 or semi_open_seq > 0:
-        return "Black won"
-    
+    for col in ["w", "b"]:
+        win = False
+        for i in range(len(board) - 4):
+            for j in range(len(board[0])):
+                if board[i][j] == col:
+                    
+                    # checking for vertical win
+                    if check_5_row(board, col, i, j, 1, 0): win = True
+
+                    # checking for horozontal and diagonal left to right wins
+                    if j < len(board) - 4:
+                        if check_5_row(board, col, i, j, 0, 1): win = True
+                        if check_5_row(board, col, i, j, 1, 1): win = True
+                    
+                    # checking for diagonal right to left win
+                    if j > 3:
+                        if check_5_row(board, col, i, j, 1, -1): win = True
+        if win:
+            if col == "w": return "White won"
+            if col == "b": return "Black won"
+       
     return "Continue playing"
 
 
