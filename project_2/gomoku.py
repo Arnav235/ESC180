@@ -11,11 +11,33 @@ Author(s): Michael Guerzhoy with tests contributed by Siavash Kazemian.  Last mo
 import copy
 
 def is_empty(board):
-    pass
-    
+    for row in range(len(board)):
+        for col in range(len(board)):
+            if board[row][col] != " ":
+                return False
+    return True
     
 def is_bounded(board, y_end, x_end, length, d_y, d_x):
-    pass
+    x_start = x_end + (length-1) *-1*d_x
+    y_start = y_end + (length-1) *-1*d_y
+    x_last = x_start + -1*d_x
+    y_last = y_start + -1*d_y
+    x_next = x_end + d_x
+    y_next = y_end + d_y
+    #OPEN
+    if x_last != -1 and y_last != -1:
+        if board[y_last][x_last] == " ":
+            if y_next != len(board) and x_next != len(board[0]):
+                if board[y_next][x_next] == " ":
+                    return "OPEN"
+    
+    # CLOSED
+    if (x_last == -1 or y_last == -1) or board[y_last][x_last] != " ":
+        if (x_next == len(board[0]) or y_next== len(board)) or board[y_next][x_next] != " ":
+            return "CLOSED"
+
+    #SEMI-OPEN
+    return "SEMIOPEN"
     
 def detect_row(board, col, y_start, x_start, length, d_y, d_x):
     open_seq_count = 0
@@ -49,7 +71,7 @@ def detect_row(board, col, y_start, x_start, length, d_y, d_x):
 
         y_start += d_y
         x_start += d_x
-        if y_start > len(board) -1 or x_start > len(board[0]) -1:
+        if y_start > len(board) -1 or x_start > len(board[0]) -1 or x_start < 0:
             if counting and count == length:
                 if row_start_open:
                     semi_open_seq_count += 1
@@ -88,17 +110,16 @@ def detect_rows(board, col, length):
             open_seq, semi_open_seq = detect_row(board, col, 0, i, length, 1, -1) 
             open_seq_count += open_seq
             semi_open_seq_count += semi_open_seq
-    
     # right edge only with diagonal from right to left
     for i in range(len(board) -1):
-        open_seq, semi_open_seq = detect_row(board, col, i, 0, length, 1, -1) 
+        open_seq, semi_open_seq = detect_row(board, col, i, 7, length, 1, -1) 
         open_seq_count += open_seq
         semi_open_seq_count += semi_open_seq
 
     return open_seq_count, semi_open_seq_count
     
 def search_max(board):
-    max_score = 0
+    max_score = float("-inf")
     for i in range(len(board)):
         for j in range(len(board[0])):
             if board[i][j] == " ":
@@ -151,6 +172,10 @@ def check_if_board_full(board):
 # function checks whether at the position (y, x) and going in the direction (d_y, d_x)
 # the color 'col' makes a 5 in a row
 def check_5_row(board, col, y, x, d_y, d_x):
+    # checking if the piece before the starting piece is the same colour
+    if y-d_y > -1 and x-d_x > -1 and x-d_x < len(board):
+        if board[y-d_y][x-d_x] == col:
+            return False
     for i in range(4):
         y += d_y
         x += d_x
@@ -165,12 +190,13 @@ def is_win(board):
 
     for col in ["w", "b"]:
         win = False
-        for i in range(len(board) - 4):
+        for i in range(len(board)):
             for j in range(len(board[0])):
                 if board[i][j] == col:
                     
                     # checking for vertical win
-                    if check_5_row(board, col, i, j, 1, 0): win = True
+                    if i < len(board) -4:
+                        if check_5_row(board, col, i, j, 1, 0): win = True
 
                     # checking for horozontal and diagonal left to right wins
                     if j < len(board) - 4:
@@ -219,7 +245,7 @@ def analysis(board):
     for c, full_name in [["b", "Black"], ["w", "White"]]:
         print("%s stones" % (full_name))
         for i in range(2, 6):
-            open, semi_open = detect_rows(board, c, i);
+            open, semi_open = detect_rows(board, c, i)
             print("Open rows of length %d: %d" % (i, open))
             print("Semi-open rows of length %d: %d" % (i, semi_open))
         
@@ -230,6 +256,8 @@ def analysis(board):
     
 def play_gomoku(board_size):
     board = make_empty_board(board_size)
+    board = [[' ', 'w', ' ', 'b', 'w', ' ', ' ', 'b'], ['w', 'b', ' ', ' ', ' ', 'b', 'b', 'b'], ['w', 'w', 'b', ' ', 'b', 'w', 'w', 'w'], ['w', 'w', ' ', 'b', ' ', ' ', ' ', 'w'], ['w', 'w', 'b', 'b', ' ', ' ', ' ', ' '], ['b', 'w', 'b', 'b', 'b', ' ', ' ', ' '], ['b', 'w', 'w', ' ', ' ', 'b', ' ', 'b'], [' ', 'w', 'w', 'w', 'w', 'w', 'w', 'b']]
+    print(is_win(board))
     board_height = len(board)
     board_width = len(board[0])
     
